@@ -34,10 +34,10 @@ def kFoldValidation(feature_data, result_data):
     print np.mean(scores)
 
 
-def convertToGravityModel(feature_data, result_data):
+def convertToGravityModel(feature_data, result_data, log_transform_list = ['GDP_o', 'GDP_d', 'POP_o', 'POP_d', 'Dist_coord']):
     result_data = result_data.apply(np.log)
-
-
+    for col in log_transform_list:
+        feature_data[col] = feature_data[col].apply(np.log)
 
     return feature_data, result_data
 
@@ -45,7 +45,7 @@ def convertToGravityModel(feature_data, result_data):
 
 feature_data, result_data = retrieveData()
 
-#convertToGravityModel(feature_data, result_data)
+feature_data, result_data = convertToGravityModel(feature_data, result_data)
 
 
 kFoldValidation(feature_data, result_data)
