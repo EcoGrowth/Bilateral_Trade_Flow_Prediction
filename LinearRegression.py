@@ -1,5 +1,6 @@
 import pandas as pd
-from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.linear_model import LogisticRegression, LinearRegression, Ridge
+from sklearn.kernel_ridge import KernelRidge
 from sklearn.model_selection import cross_val_score, cross_validate
 import numpy as np
 
@@ -11,7 +12,7 @@ def retrieveData():
     print data.columns.tolist()
 
     print ("We are picking ")
-    features = ['GDP_o', 'GDP_d', 'POP_o', 'POP_d', 'Dist_coord', 'Comlang', 'Contig']
+    features = ['GDP_o', 'GDP_d', 'POP_o', 'POP_d', 'Dist_coord', 'Comlang', 'Contig', 'OECD_o', 'OECD_d', 'GATT_d', 'GATT_o', 'XPTOT_o', 'XPTOT_d']
     print features
     print ("Our dependent variable is 'FLOW")
 
@@ -19,6 +20,11 @@ def retrieveData():
     data = data[features + ['FLOW']]
     data = data.dropna(how='any')
     data = data[data.FLOW != 0]
+
+    wwdata = data.tail(10000)
+    data = data.sample(10000)
+    #print data.shape
+
     features = data[features]
     dependent_variable = data['FLOW']
     return features, dependent_variable
@@ -26,12 +32,12 @@ def retrieveData():
 
 
 
-def kFoldValidation(feature_data, result_data):
-    lr = LinearRegression()
-    scores = cross_val_score(lr, feature_data, result_data, cv=10)
-    print 'Train score'
+def kFoldValidation(model, feature_data, result_data):
+    print model
+    scores = cross_val_score(model, feature_data, result_data, cv=10, verbose=1)
     print 'Test Score'
     print np.mean(scores)
+
 
 
 def convertToGravityModel(feature_data, result_data, log_transform_list = ['GDP_o', 'GDP_d', 'POP_o', 'POP_d', 'Dist_coord']):
@@ -47,6 +53,8 @@ feature_data, result_data = retrieveData()
 
 feature_data, result_data = convertToGravityModel(feature_data, result_data)
 
-
-kFoldValidation(feature_data, result_data)
+lr = LinearRegression()
+#lr = Ridge(alpha=7.0)
+#lr = KernelRidge(alpha=10^-2, kernel='rbf')
+kFoldValidation(lr, feature_data, result_data)
 
