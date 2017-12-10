@@ -35,7 +35,7 @@ def retrieveData():
     return data
 
 # Cleans the data
-def dataCleansing(data):
+def dataCleansing(data, features):
     print ("We are picking ")
     print(features)
     print ("Our dependent variable is 'FLOW'")
@@ -76,9 +76,8 @@ def splitTrainTest(data, features):
     # Separate into train set & test set
     train, test = train_test_split(data, test_size=0.3)
     
-    
-    x_train = train[data.columns.values]
-    x_test = test[data.columns.values]
+    x_train = train[features]
+    x_test = test[features]
     y_train = train['FLOW']
     y_test = test['FLOW']
 
@@ -172,7 +171,7 @@ features = ['GDP_o', 'GDP_d', 'POP_o', 'POP_d', 'Dist_coord', 'Comlang',
 # Retrieve data
 data = retrieveData()
 # Clean data
-data = dataCleansing(data)
+data = dataCleansing(data, features)
 # plotData(data)
 
 x_train, x_test, y_train, y_test = splitTrainTest(data, features)
