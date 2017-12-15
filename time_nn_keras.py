@@ -19,7 +19,7 @@ from sklearn.model_selection import cross_val_score, cross_validate
 from sklearn.metrics import mean_squared_error
 from keras import backend as K
 import matplotlib.pyplot as plt
-
+from sklearn import preprocessing
 # Computes r^2 (coefficient of determination)
 # Reference: http://jmbeaujour.com/ml/2017/03/20/CoeffDetermination_CustomMetric4Keras/
 def r2(y_true, y_pred):
@@ -84,45 +84,27 @@ def splitTrainTest(data, features):
 
     return x_train, x_test, y_train, y_test
 
-# Runs a NN with a linear activation function in the output layer
-def neuralNetRegression(x_train, y_train, x_test, y_test):
+
+def neuralNet(x_train, y_train, x_test, y_test, activation='selu', epochs=40, optimizer='adam', width=48, depth=3):
     m, n = x_train.shape
-    
+
     model = Sequential()
-    model.add(Dense(48, activation = 'selu', input_dim = n, 
-                    kernel_regularizer = regularizers.l2(0.0001)))
-    model.add(Dense(48, activation = 'selu', 
-                    kernel_regularizer = regularizers.l2(0.0001)))
-    model.add(Dense(48, activation = 'selu', 
-                    kernel_regularizer = regularizers.l2(0.0001)))
-    model.add(Dense(1, activation = 'linear'))
+    model.add(Dense(width, activation=activation, input_dim=n,
+                    kernel_regularizer=regularizers.l2(0.0001)))
+    for i in range(depth - 1):
+        model.add(Dense(width, activation=activation,
+                        kernel_regularizer=regularizers.l2(0.0001)))
+        model.add(Dense(width, activation=activation,
+                        kernel_regularizer=regularizers.l2(0.0001)))
+    model.add(Dense(1, activation='linear'))
 
     # For some reason, stochastic gradient descent performs horribly
-    model.compile(optimizer = 'Adam', loss='mse', metrics = [r2])
-    
-    model.fit(x_train, y_train, epochs = 40, batch_size = 32, verbose = 2)
+    model.compile(optimizer=optimizer, loss='mse', metrics=[r2])
+
+    history = model.fit(x_train, y_train, epochs=epochs, batch_size=1000, verbose=2)
     score = model.test_on_batch(x_test, y_test)
-    
-    return score
+    return score, history, model
 
-# Runs a NN with a softmax activation function in the output layer
-def neuralNetSoftmax(x_train, y_train_disc, x_test, y_test_disc):
-    m, n = x_train.shape
-    
-    model = Sequential()
-    model.add(Dense(10, activation = 'sigmoid', input_dim = n, 
-                    kernel_regularizer = regularizers.l2(0.0001)))
-    model.add(Dense(10, activation = 'softmax'))
-
-    # For some reason, stochastic gradient descent performs horribly
-    model.compile(optimizer = 'rmsprop', loss='categorical_crossentropy',
-                  metrics = ['accuracy'])
-    
-    model.fit(x_train, y_train_disc, epochs = 40, batch_size = 32)
-    score = model.test_on_batch(x_test, y_test_disc)
-    
-    return score
- 
 # Takes the log of features
 def convertToLog(x, y, log_transform_list = ['FLOW_lag', 'GDP_o', 'GDP_d', 'POP_o', 
                                              'POP_d', 'Dist_coord', 'XPTOT_o']):
@@ -132,48 +114,14 @@ def convertToLog(x, y, log_transform_list = ['FLOW_lag', 'GDP_o', 'GDP_d', 'POP_
 
     return x, y    
     
-# Discretize the output space using pandas qcut
-def discretizeDataQCut(y):
-    y_temp = pd.qcut(y, 10, labels = range(10))
-    y_disc = np.zeros((y.shape[0], 10))
-    y_disc[np.arange(y.shape[0]), y_temp] = 1
-    
-    print(y_disc.shape)
-    return y_disc
-
-# Discretize the output space using pandas cut
-def discretizeDataCut(y):
-    y_temp = pd.cut(y, 10, labels = range(10))
-    y_disc = np.zeros((y.shape[0], 10))
-    y_disc[np.arange(y.shape[0]), y_temp] = 1
-    
-    print(y_disc.shape)
-    return y_disc
-
-# Converts data in dataframe to numpy arrays
-def convertToNumpyArray(x_train, x_test, y_train, y_test):
-    # Convert to np arrays 
-    x_train = df.as_matrix(x_train)
-    x_test = df.as_matrix(x_test)
-    y_train = df.as_matrix(y_train)
-    y_test = df.as_matrix(y_test)
-    
-    return x_train, x_test, y_train, y_test
-
-# K fold validation for linear regressions 
-def kFoldValidation(model, feature_data, result_data):
-    print(model)
-    scores = cross_val_score(model, feature_data, result_data, cv=10, verbose=1)
-    print('Test Score')
-    print(np.mean(scores))
-
 
 # Specify the features we want to use in our mo
 #features = ['iso_o','iso_d','GDP_o', 'GDP_d' ,'year', 'POP_o', 'POP_d', 'Dist_coord', 'Comlang',
 #                'Contig', 'OECD_o', 'OECD_d', 'GATT_d', 'GATT_o', 'XPTOT_o','EU_o',
 #                'EU_d', 'Evercol']
 features = ['FLOW_lag', 'GDP_o', 'GDP_d', 'POP_o', 'POP_d', 'Dist_coord', 'Comlang',
-                'Contig', 'OECD_o', 'OECD_d', 'GATT_d', 'GATT_o', 'XPTOT_o',]
+             'Contig', 'OECD_o', 'OECD_d', 'GATT_d', 'GATT_o', 'XPTOT_o']
+#features = ['FLOW_lag']
 # features2 = ['GDP_o', 'GDP_d', 'POP_o', 'POP_d', 'Dist_coord', 'Comlang',
 #                'Contig', 'OECD_o', 'OECD_d', 'GATT_d', 'GATT_o', 'XPTOT_o',]
 
@@ -181,11 +129,16 @@ features = ['FLOW_lag', 'GDP_o', 'GDP_d', 'POP_o', 'POP_d', 'Dist_coord', 'Comla
 data = retrieveData()
 # Clean data
 data = dataCleansing(data, features)
+data = data[['FLOW', 'FLOW_lag']]
 # plotData(data)
 
-x_train, x_test, y_train, y_test = splitTrainTest(data, features)
-x_train, y_train = convertToLog(x_train, y_train)
-x_test, y_test = convertToLog(x_test, y_test)
+x_train, x_test, y_train, y_test = splitTrainTest(data, ['FLOW_lag'])
+x_train, y_train = convertToLog(x_train, y_train, log_transform_list=['FLOW_lag'])
+x_test, y_test = convertToLog(x_test, y_test, log_transform_list=['FLOW_lag'])
+
+# x_train = preprocessing.scale(x_train)
+# x_test = preprocessing.scale(x_test)
+
 
 #y_train_disc = discretizeDataQCut(y_train)
 #y_test_disc = discretizeDataQCut(y_test)
@@ -203,8 +156,12 @@ x_test, y_test = convertToLog(x_test, y_test)
 lr = LinearRegression()
 
 lr.fit(x_train, y_train)
-y_pred = lr.predict(x_test)
-print(math.sqrt(mean_squared_error(y_test, y_pred)))
+y_test_pred = lr.predict(x_test)
+y_train_pred = lr.predict(x_train)
+
+print(math.sqrt(mean_squared_error(y_train, y_train_pred)))
+print(lr.score(x_train, y_train))
+print(math.sqrt(mean_squared_error(y_test, y_test_pred)))
 print(lr.score(x_test, y_test))
 #
 #x_train = x_train['FLOW_lag']
@@ -219,9 +176,6 @@ print(lr.score(x_test, y_test))
 #print(math.sqrt(mean_squared_error(y_test, y_pred)))
 #print(lr.score(x_test.reshape(-1,1), y_test))
 ##
-##x_train, x_test, y_train_disc, y_test_disc = convertToNumpyArray(x_train, x_test,
-##                                                                 y_train_disc, y_test_disc)
 
 
-print(neuralNetRegression(x_train, y_train, x_test, y_test))
-#print(neuralNetSoftmax(x_train, y_train_disc, x_test, y_test_disc))
+#print(neuralNet(x_train, y_train, x_test, y_test, epochs=500))
