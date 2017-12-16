@@ -6,7 +6,7 @@ import numpy as np
 
 
 def retrieveData():
-    data = pd.read_csv('data_2009_updated2.csv')
+    data = pd.read_csv('tradehist_data.csv')
 
     print("Here is all our possible features!")
     print data.columns.tolist()

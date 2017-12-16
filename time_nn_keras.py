@@ -29,7 +29,7 @@ def r2(y_true, y_pred):
 
 # Retrieves data in pandas dataframe format
 def retrieveData():
-    data = pd.read_csv('data_2009_updated3.csv')
+    data = pd.read_csv('tradhist_data_with_time_lag.csv')
 
     print("Here is all our possible features!")
     print(data.columns.tolist())
