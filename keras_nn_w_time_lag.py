@@ -19,6 +19,7 @@ from sklearn.model_selection import cross_val_score, cross_validate
 from sklearn.metrics import mean_squared_error
 from keras import backend as K
 import matplotlib.pyplot as plt
+from keras_nn import neuralNet
 from sklearn import preprocessing
 # Computes r^2 (coefficient of determination)
 # Reference: http://jmbeaujour.com/ml/2017/03/20/CoeffDetermination_CustomMetric4Keras/
@@ -84,26 +85,6 @@ def splitTrainTest(data, features):
 
     return x_train, x_test, y_train, y_test
 
-
-def neuralNet(x_train, y_train, x_test, y_test, activation='selu', epochs=40, optimizer='adam', width=48, depth=3):
-    m, n = x_train.shape
-
-    model = Sequential()
-    model.add(Dense(width, activation=activation, input_dim=n,
-                    kernel_regularizer=regularizers.l2(0.0001)))
-    for i in range(depth - 1):
-        model.add(Dense(width, activation=activation,
-                        kernel_regularizer=regularizers.l2(0.0001)))
-        model.add(Dense(width, activation=activation,
-                        kernel_regularizer=regularizers.l2(0.0001)))
-    model.add(Dense(1, activation='linear'))
-
-    # For some reason, stochastic gradient descent performs horribly
-    model.compile(optimizer=optimizer, loss='mse', metrics=[r2])
-
-    history = model.fit(x_train, y_train, epochs=epochs, batch_size=1000, verbose=2)
-    score = model.test_on_batch(x_test, y_test)
-    return score, history, model
 
 # Takes the log of features
 def convertToLog(x, y, log_transform_list = ['FLOW_lag', 'GDP_o', 'GDP_d', 'POP_o', 
@@ -178,4 +159,4 @@ print(lr.score(x_test, y_test))
 ##
 
 
-#print(neuralNet(x_train, y_train, x_test, y_test, epochs=500))
+print(neuralNet(x_train, y_train, x_test, y_test, epochs=500))
