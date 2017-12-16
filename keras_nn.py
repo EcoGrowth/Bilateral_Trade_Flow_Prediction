@@ -20,6 +20,7 @@ from keras import backend as K
 from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 from sklearn import preprocessing
+from util import convertToLog
 
 FEATURES= ['GDP_o', 'GDP_d', 'POP_o', 'POP_d', 'Dist_coord', 'Comlang',
                 'Contig', 'OECD_o', 'OECD_d', 'GATT_d', 'GATT_o', 'XPTOT_o']
@@ -87,15 +88,6 @@ def neuralNet(x_train, y_train, x_test, y_test, activation = 'selu', epochs = 40
     history = model.fit(x_train, y_train, epochs = epochs, batch_size = 1000, verbose=2)
     score = model.test_on_batch(x_test, y_test)
     return score, history, model
-    
-def convertToLog(x, y, log_transform_list = ['GDP_o', 'GDP_d', 'POP_o',
-                                             'POP_d', 'Dist_coord', 'XPTOT_o']):
-    y = y.apply(np.log)
-    for col in log_transform_list:
-        x[col] = x[col].apply(np.log)
-
-    return x, y    
-
 
 
 def kFoldValidation(model, feature_data, result_data):
