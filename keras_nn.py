@@ -168,13 +168,12 @@ print score8
 
 
 epochs = 3000
-#score1, hist1 = neuralNet(x_train, y_train, x_test, y_test, activation='tanh', epochs=epochs, optimizer='adam', width=6, depth=1)
-#score2, hist2 = neuralNet(x_train, y_train, x_test, y_test, activation='tanh', epochs=epochs, optimizer='adam', width=6, depth=3)
-#score3, hist3 = neuralNet(x_train, y_train, x_test, y_test, activation='tanh', epochs=epochs, optimizer='adam', width=6, depth=5)
-#score4, hist4 = neuralNet(x_train, y_train, x_test, y_test, activation='tanh', epochs=epochs, optimizer='adam', width=12, depth=1)
-#score5, hist5 = neuralNet(x_train, y_train, x_test, y_test, activation='tanh', epochs=epochs, optimizer='adam', width=12, depth=3)
-#score6, hist6 = neuralNet(x_train, y_train, x_test, y_test, activation='tanh', epochs=epochs, optimizer='adam', width=12, depth=5)
-#score7, hist7 = neuralNet(x_train, y_train, x_test, y_test, activation='tanh', epochs=epochs, optimizer='adam', width=48, depth=1)
+
+def trainDifferentArchitectures():
+
+    for width in [6, 12, 48]:
+        for depth in [1,3,5]:
+            score1, hist1 = neuralNet(x_train, y_train, x_test, y_test, activation='tanh', epochs=epochs, optimizer='adam', width=width, depth=depth)
 
 #score9, hist9 = neuralNet(x_train, y_train, x_test, y_test, activation='tanh', epochs=epochs, optimizer='rmsprop', width=48, depth=5)
 
